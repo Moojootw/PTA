@@ -127,7 +127,7 @@ public class ProjectsApp {
 			return Integer.valueOf(input);
 		}
 		catch(NumberFormatException e) {
-			throw new DbException(input + "is not a valid number.");
+			throw new DbException(input + " is not a valid number.");
 		}
 	}
 
