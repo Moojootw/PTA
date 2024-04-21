@@ -15,7 +15,6 @@ public class Item {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long itemId;
-	private Long categoryId; //this is a foreign key
 	private Long itemQuantity;
 	private Double itemPrice;
 	private Boolean itemIsFastSeller;
@@ -23,7 +22,7 @@ public class Item {
 	private String itemName;
 	private Boolean itemIsDiscontinued;
 	
-	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "categoryId")
+	@ManyToOne(cascade = CascadeType.PERSIST)
+	@JoinColumn(name = "category_id")
 	private Category category;
 }

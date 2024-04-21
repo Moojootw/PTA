@@ -1,12 +1,13 @@
 package sisims.entity;
 
+import java.util.List;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.Data;
 
 @Entity
@@ -21,7 +22,6 @@ public class Employee {
 	private String employeePhone;
 	private String employeeJobTitle;
 	
-	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "pet_store_id")
-	private PetStore petStore;
+	@OneToMany(mappedBy = "employee", cascade = CascadeType.PERSIST)
+	private List<Transaction> transactions;
 }
