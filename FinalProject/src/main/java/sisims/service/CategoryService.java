@@ -27,23 +27,21 @@ public class CategoryService {
 	private ItemDao itemDao;
 	
 	@PostConstruct
-	
-	//makes sure that we have a category to fall back to 
+	//Make sure that there is always a category for items to have reference to should their category get removed
+	//this category current final name of "Unspecified"
 	public void ensureDefaultCategoryExists() {
 	    final String defaultCategoryName = "Unspecified";
-	    Category defaultCategory = categoryDao.findByCategoryName(defaultCategoryName)
-	        .orElseGet(() -> {
+	    Category defaultCategory = categoryDao.findByCategoryName(defaultCategoryName).orElseGet(() -> {
 	            Category newCategory = new Category();
 	            newCategory.setCategoryName(defaultCategoryName);
 	            newCategory.setCategoryDescription("Default category for unassigned or removed category items.");
 	            return categoryDao.save(newCategory);
 	        });
-	    log.info("Default category ensured: {}", defaultCategory);
+	    log.info("Default category ensured current ID: {}", defaultCategory.getCategoryId());
 	}
 	
 	
 	@Transactional(readOnly = false)
-	//save a new category
 	public CategoryData saveACategory(CategoryData categoryData) {
 		log.info("Saving new category with data: {}", categoryData);
 	    Category category = new Category();
@@ -51,7 +49,6 @@ public class CategoryService {
 	    Category savedCategory = categoryDao.save(category);
 	    return convertToCategoryData(savedCategory);
 	}
-	//copies over a DTO
 	private void copyCategoryFields(Category category, CategoryData categoryData) {
 	    category.setCategoryName(categoryData.getCategoryName());
 	    category.setCategoryDescription(categoryData.getCategoryDescription());
@@ -59,45 +56,43 @@ public class CategoryService {
 	}
 	
 	private CategoryData convertToCategoryData(Category category) {
-		//converts a category into a DTO
 	    if (category == null) {
-	        log.error("convertToCategoryData called with null Category entity.");
+	        log.error("Null not allowed with convertToCategoryData");
 	        return null;
 	    }
 	    CategoryData categoryData = new CategoryData();
 	    categoryData.setCategoryId(category.getCategoryId());
 	    categoryData.setCategoryName(category.getCategoryName());
 	    categoryData.setCategoryDescription(category.getCategoryDescription());
-	    categoryData.setItems(null);
+	    categoryData.setItems(null); //just to be safe
 	    categoryData.setItemCount(category.getItemCountInCategory());
 	    return categoryData;
 	}
 	
 	@Transactional(readOnly = true)
-	//get a category with an ID
 	public CategoryData getCategoryWithId(Long categoryId) {
 	    Category category = categoryDao.findById(categoryId).orElseThrow(() -> new NoSuchElementException("Category with ID:" + categoryId + " not found"));
 	    CategoryData categoryData = new CategoryData(category);
-	    categoryData.setItemCount(category.getItems().size());
+	    categoryData.setItemCount(category.getItems().size()); //this is where the GET request fills out the item count
 	    return categoryData;
 	}
 	
-	//updates a category with an ID
 	@Transactional(readOnly = false)
 	public CategoryData updateCategoryWithID(Long categoryId, CategoryData categoryData) {
-		Category category = categoryDao.findById(categoryId).orElseThrow(() -> new RuntimeException("Category not found"));
+		Category category = categoryDao.findById(categoryId).orElseThrow(() -> new RuntimeException("Category with ID:" +categoryId + " does not exist"));
 		copyCategoryFields(category, categoryData);
 		category = categoryDao.save(category);
 		return new CategoryData(category);
 	}
 	
 	@Transactional(readOnly = false)
-	//deletes a category with an ID
+	//Custom
+	//Deleteing a category has a lot of issues that are addressed here
 	public void deleteCategoryWithId(Long categoryId) {
 	    Category category = categoryDao.findById(categoryId).orElseThrow(() -> new NoSuchElementException("Category with ID:" + categoryId + " not found"));
 	    Category defaultCategory = categoryDao.findByCategoryName("Unspecified")
-	        .orElseThrow(() -> new NoSuchElementException("Default category must exist"));
-	    for (Item item : category.getItems()) {
+	        .orElseThrow(() -> new NoSuchElementException("Default category doesn't exist"));
+	    for (Item item : category.getItems()) {// reassings the orphaned items to the default category
 	        item.setCategory(defaultCategory);
 	        itemDao.save(item);
 	    }

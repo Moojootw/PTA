@@ -15,20 +15,20 @@ import lombok.Data;
 @Entity
 @Data
 public class Transaction {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long transactionId;
-	private Long transactionItemCount;
-	private Double transactionTotal;
-	private String transactionDate;
-	private String transactionDetails;
-	
-	@ManyToOne
-	@JoinColumn(name = "employee_id")
-	private Employee employee;
-	
-	@OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL)
-	private List<TransactionItems> transactionItems;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long transactionId;
+    private Long transactionItemCount;
+    private Double transactionTotal;
+    private String transactionDate;
+    private String transactionDetails;
+    
+    @ManyToOne
+    @JoinColumn(name = "employee_id", nullable = true)  //makes sure that the application is ok with employee_id (PK) is null in this table
+    private Employee employee;
+    
+    @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TransactionItems> transactionItems;
 }
 
 

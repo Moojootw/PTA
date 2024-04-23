@@ -14,21 +14,19 @@ import sisims.entity.TransactionItems;
 
 @Service
 public class TransactionItemsService {
+	
+	//this table is majority of my development time for this project.
 
     @Autowired
     private TransactionItemsDao transactionItemsDao;
-    //this gets a list of item Ids in a transaction 
 
     public List<TransactionItemsData> getTransactionItemsByTransactionId(Long transactionId) {
-        List<TransactionItems> transactionItemsList = transactionItemsDao.findByTransactionId(transactionId);
-        if (transactionItemsList.isEmpty()) {
-            throw new NoSuchElementException("No items found for transaction with ID: " + transactionId);
-        }
+        List<TransactionItems> transactionItemsList = transactionItemsDao.findByTransactionId(transactionId); //findByTransactionId is a custom Dao method using @Query
         return Collections.singletonList(new TransactionItemsData(transactionItemsList));
     }
 
     @Transactional
-    //deletes a transaction
+    //this is to remove a signle item from a transaction. instead of removing the entire transaction
     public void deleteTransactionItemsWithId(Long transactionId, Long itemId) {
         TransactionItems.TransactionItemId id = new TransactionItems.TransactionItemId(transactionId, itemId);
         if (!transactionItemsDao.existsById(id)) {
@@ -36,4 +34,4 @@ public class TransactionItemsService {
         }
         transactionItemsDao.deleteById(id);
     }
-    }
+}

@@ -1,5 +1,6 @@
 package sisims.service;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import sisims.controller.model.SisimsData.EmployeeData;
 import sisims.dao.EmployeeDao;
+import sisims.dao.TransactionDao;
 import sisims.entity.Employee;
+import sisims.entity.Transaction;
 
 
 
@@ -17,7 +20,12 @@ public class EmployeeService {
     
     @Autowired
     private EmployeeDao employeeDao;
-   
+    
+    @Autowired
+    private TransactionDao transactionDao;
+    
+  //this was pretty much stolen from petstore
+    
     @Transactional(readOnly = false)
     public EmployeeData createNewEmployee(EmployeeData employeeData) {
         Employee employee = new Employee();
@@ -51,10 +59,17 @@ public class EmployeeService {
         return convertToEmployeeData(employee);
     }
     
-    @Transactional(readOnly = false)
+    @Transactional
+    //Custom
+    //set the transaction that the employee was deleted to null
     public void deleteEmployeeWithId(Long employeeId) {
         Employee employee = employeeDao.findById(employeeId)
             .orElseThrow(() -> new NoSuchElementException("Employee with ID:" + employeeId + " not found"));
+        List<Transaction> transactions = transactionDao.findByEmployee(employee);
+        transactions.forEach(transaction -> {
+            transaction.setEmployee(null);
+            transactionDao.save(transaction);
+        });
         employeeDao.delete(employee);
     }
 }

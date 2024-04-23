@@ -19,16 +19,16 @@ public class Category {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long categoryId;
-	@Column(unique = true)
+	@Column(unique = true) //no duplcate category names
 	private String categoryName;
 	private String categoryDescription;
-	
 	@OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST)
 	@ToString.Exclude
 	private List<Item> items;
 	
 	@Transient
+	//Custom
 	public int getItemCountInCategory() {
-		return items != null ? items.size() : 0; // returns items.size() or 0 if there are no items in the category
+		return items != null ? items.size() : 0; // returns items.size() or 0 depending on "is items not null ?"
 	}
 }

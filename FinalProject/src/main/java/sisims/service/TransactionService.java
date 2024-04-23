@@ -15,11 +15,12 @@ public class TransactionService {
 
     @Autowired
     private TransactionDao transactionDao;
+    
+    //simple transfer logic for this one
 
     @Transactional(readOnly = true)
     public TransactionData getTransactionWithId(Long transactionId) {
-        Transaction transaction = transactionDao.findById(transactionId)
-                .orElseThrow(() -> new NoSuchElementException("Transaction with ID:" + transactionId + " not found"));
+        Transaction transaction = transactionDao.findById(transactionId).orElseThrow(() -> new NoSuchElementException("Transaction with ID:" + transactionId + " not found"));
         return new TransactionData(transaction);
     }
 
@@ -36,8 +37,7 @@ public class TransactionService {
 
     @Transactional(readOnly = false)
     public void deleteTransaction(Long transactionId) {
-        Transaction transaction = transactionDao.findById(transactionId)
-                .orElseThrow(() -> new NoSuchElementException("Transaction with ID: " + transactionId + " not found"));
+        Transaction transaction = transactionDao.findById(transactionId).orElseThrow(() -> new NoSuchElementException("Transaction with ID: " + transactionId + " not found"));
         transactionDao.delete(transaction);
     }
 }

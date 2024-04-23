@@ -1,5 +1,6 @@
 package sisims.service;
 
+//import java.util.List;
 import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -8,8 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 import sisims.controller.model.SisimsData.ItemData;
 import sisims.dao.CategoryDao;
 import sisims.dao.ItemDao;
+//import sisims.dao.TransactionItemsDao;
 import sisims.entity.Category;
 import sisims.entity.Item;
+//import sisims.entity.TransactionItems;
 
 
 
@@ -20,32 +23,33 @@ public class ItemService {
     private ItemDao itemDao;
     @Autowired
     private CategoryDao categoryDao;
+    
+//    @Autowired
+//    private TransactionItemsDao transactionItemsDao;
 
     @Transactional
-    
-    //create a new Item and assign it to the default category if it doesnt havea category Id
+    //create a new Item and assign it to the default category if it doesnt have a category Id
     public ItemData createNewItem(ItemData itemData) {
         Item item = new Item();
         Category category;
-
+        
+        //if we dont give the item a category Id in creation, then assign it to "Unspecified"
         if (itemData.getCategoryId() != null) {
-            category = categoryDao.findById(itemData.getCategoryId())
-                    .orElseGet(() -> getOrCreateUnspecifiedCategory());
-        } else {
+            category = categoryDao.findById(itemData.getCategoryId()).orElseGet(() -> getOrCreateUnspecifiedCategory());
+        } 
+        else {
             category = getOrCreateUnspecifiedCategory();
         }
-
         copyItemFields(item, itemData, category);
         item = itemDao.save(item);
         return convertToItemData(item);
     }
     
-  //creates the unspecified category
+    //ensures that "Unspecified" exists or else create a new one
     private Category getOrCreateUnspecifiedCategory() {
         return categoryDao.findByCategoryName("Unspecified").orElseGet(() -> createUnspecifiedCategory());
     }
     
-
     private Category createUnspecifiedCategory() {
         Category category = new Category();
         category.setCategoryName("Unspecified");
@@ -61,7 +65,7 @@ public class ItemService {
 
     @Transactional(readOnly = false)
     
-    //update the item, if that includes an invalid or null category Id the item is assigned the default category
+  
     public ItemData updateItemWithId(Long itemId, ItemData itemData) {
         Item item = itemDao.findById(itemId).orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + itemId));
         Category category;
@@ -80,7 +84,8 @@ public class ItemService {
 
     @Transactional
     public void deleteItemWithId(Long itemId) {
-        itemDao.deleteById(itemId);
+        Item item = itemDao.findById(itemId).orElseThrow(() -> new NoSuchElementException("No item found with ID: " + itemId));
+        itemDao.delete(item);
     }
 
     private void copyItemFields(Item item, ItemData itemData, Category category) {
@@ -103,6 +108,7 @@ public class ItemService {
         itemData.setItemName(item.getItemName());
         itemData.setItemIsDiscontinued(item.getItemIsDiscontinued());
         itemData.setCategoryName(item.getCategory().getCategoryName());
+        itemData.setCategoryId(item.getCategory().getCategoryId());
         return itemData;
     }
 }

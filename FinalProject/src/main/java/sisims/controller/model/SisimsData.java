@@ -15,7 +15,11 @@ import sisims.entity.TransactionItems;
 @NoArgsConstructor
 
 //this is where all the transacitonal logic takes place.
+//originally separated, but after needing to import both employee and item to transaction, it no longer made much sense
 public class SisimsData {
+	
+	
+	//*****There is some custom logic in these classes. I have annotated them with "//Custom" *****
 	
 	@Data
 	@NoArgsConstructor
@@ -39,7 +43,8 @@ public class SisimsData {
 	
 	@Data
 	@NoArgsConstructor
-	//makes a category data entity with extra details such as item count
+	//Custom 
+	//the Category table does not have an item count, it instead gets a return of the size of the item list.
 	public static class CategoryData {
 		
 		private Long categoryId;
@@ -52,21 +57,23 @@ public class SisimsData {
 			categoryId = category.getCategoryId();
 			categoryName = category.getCategoryName();
 			categoryDescription = category.getCategoryDescription();
-			this.items = category.getItems().stream().map(CategoryItemDetail::new).collect(Collectors.toList());
-			itemCount = category.getItemCountInCategory();
+			this.items = category.getItems().stream().map(CategoryItemDetail::new).collect(Collectors.toList()); //dynamically get the items (CategoryItemDetail) in a category
+			itemCount = category.getItemCountInCategory(); //Custom
 		}
 	}
 
 	@Data
 	@NoArgsConstructor
 	public static class TransactionData {
+		//Custom
+		//Uses a shortened version of Employee information, that only displays an Employee's Name and ID number
 		private Long transactionId;
 		private Long transactionItemCount;
 		private Double transactionTotal;
 		private String transactionDate;
 		private String transactionDetails;
 		private EmployeeTransactionInfo employee;
-		private List<TransactionItemsData> transactionItems;
+		//private List<TransactionItemsData> transactionItems;
 		
 		public TransactionData(Transaction transaction) {
 			transactionId = transaction.getTransactionId();
@@ -74,11 +81,12 @@ public class SisimsData {
 			transactionTotal = transaction.getTransactionTotal();
 			transactionDate = transaction.getTransactionDate();
 			transactionDetails = transaction.getTransactionDetails();
-			employee = new EmployeeTransactionInfo(transaction.getEmployee());
+			employee = new EmployeeTransactionInfo(transaction.getEmployee()); //create an employee with EmployeeTransactionInfo details
 		}
 	}
 
 		@Data
+		//Custom
 		public static class EmployeeTransactionInfo {
 			private Long employeeId;
 			private String employeeFirstName;
@@ -93,24 +101,27 @@ public class SisimsData {
 		
 		@Data
 		@NoArgsConstructor
+		//Custom
+		//Just like with Category, we only show information that is relivent for a transaction (For transaction information, you wouldn't care about it's shelf capacity)
 		public static class TransactionItemsData {
 		    private Long transactionId;
 		    private Long employeeId;
-		    private List<ItemDetail> items;
+		    private List<ItemDetail> items; //Custom see ItemDetail below
 
 		    public TransactionItemsData(List<TransactionItems> transactionItemsList) {
 		        if (!transactionItemsList.isEmpty()) {
 		            Transaction transaction = transactionItemsList.get(0).getTransaction();
 		            this.transactionId = transaction.getTransactionId();
 		            this.employeeId = transaction.getEmployee().getEmployeeId();
-		            this.items = transactionItemsList.stream().map(ItemDetail::new).collect(Collectors.toList());
+		            this.items = transactionItemsList.stream().map(ItemDetail::new).collect(Collectors.toList()); //maps the list of transaction items with ItemDetail
 		        }
 		    }
 		}
 		
 		@Data
 		@NoArgsConstructor
-		//show relivent information on who is doing a transaction
+		//Custom
+		//constructs information that relates to a transaction such as item and price
 		public static class ItemDetail {
 			private Long itemId;
 			private String itemName;
@@ -125,15 +136,18 @@ public class SisimsData {
 		
 		@Data
 		@NoArgsConstructor
-		//consice information on item details when getting infomation from a category
+		//custom
+		//this gives information on item detail that is more relivent for a category inquire
 		public static class CategoryItemDetail {
 		    private Long itemId;
+		    private String itemName;
 		    private Long itemQuantity;
 		    private Long itemShelfLimit;
 		    private String categoryName;
 
 		    public CategoryItemDetail(Item item) {
 		        this.itemId = item.getItemId();
+		        this.itemName = item.getItemName();
 		        this.itemQuantity = item.getItemQuantity();
 		        this.itemShelfLimit = item.getItemShelfLimit();
 		        this.categoryName = item.getCategory().getCategoryName();
@@ -142,7 +156,8 @@ public class SisimsData {
 	
 	@Data
 	@NoArgsConstructor
-	//verbose item information with an item get request
+	//This is the stock item data, this is what is returned when getting information about a specific item
+	//I should also note that specifying an item category Id is optional and is given the default one if it doesnt have one
 	public static class ItemData {
 		private Long itemId;
 		private Long itemQuantity;
@@ -163,6 +178,7 @@ public class SisimsData {
 			itemName = item.getItemName();
 			itemIsDiscontinued = item.getItemIsDiscontinued();
 			categoryName = item.getCategory().getCategoryName();
+			categoryId = item.getCategory().getCategoryId();
 		}
 	}
 	
